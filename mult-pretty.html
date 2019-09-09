@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="shortcut icon" href="favicon.ico">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no" />
+<title>HTML5 Speedtest</title>
+<script type="text/javascript" src="speedtest.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+
+//LIST OF TEST SERVERS. See documentation for details if needed
+var SPEEDTEST_SERVERS=[
+	{	//this is my demo server, remove it
+		name:"Localhost Server ", //user friendly name for the server
+		server:window.location.href.substring(0,window.location.href.lastIndexOf("/")), //URL to the server. // at the beginning will be replaced with http:// or https:// automatically
+		dlURL:"backend/garbage.php",  //path to download test on this server (garbage.php or replacement)
+		ulURL:"backend/empty.php",  //path to upload test on this server (empty.php or replacement)
+		pingURL:"backend/empty.php",  //path to ping/jitter test on this server (empty.php or replacement)
+		getIpURL:"backend/getIP.php"  //path to getIP on this server (getIP.php or replacement)
+	},
+	{	//this is my demo server, remove it
+		name:"Demo Server(fi.openspeed.org)",
+        server:"//fi.openspeed.org/",
+		dlURL:"garbage.php",
+		ulURL:"empty.php",
+		pingURL:"empty.php",
+		getIpURL:"getIP.php"
+	}
+	//add other servers here, comma separated
+];
+
+
+//INITIALIZE SPEEDTEST
+var s=new Speedtest(); //create speedtest object
+s.addTestPoints(SPEEDTEST_SERVERS); //add list of servers
+s.onupdate=function(data){ //callback to update data in UI
+    I("ip").textContent=data.clientIp;
+    I("dlText").textContent=(data.testState==1&&data.dlStatus==0)?"...":data.dlStatus;
+    I("ulText").textContent=(data.testState==3&&data.ulStatus==0)?"...":data.ulStatus;
+    I("pingText").textContent=data.pingStatus;
+    I("jitText").textContent=data.jitterStatus;
+}
+s.onend=function(aborted){ //callback for test ended/aborted
+    I("startStopBtn").className=""; //show start button again
+    if(aborted){ //if the test was aborted, clear the UI and prepare for new test
+		initUI();
+    }
+}
+function selectServer(){ //called when the page is fully loaded
+    I("startStopBtn").style.display="none"; //hide start/stop button during server selection
+    s.selectServer(function(server){ //run server selection. When the server has been selected, display it in the UI
+        I("startStopBtn").style.display=""; //show start/stop button again
+        I("serverId").textContent=server.name; //show name of test server
+    });
+}
+
+
+function startStop(){ //start/stop button pressed
+	if(s.getState()==3){
+		//speedtest is running, abort
+		s.abort();
+	}else{
+		//test is not running, begin
+		s.start();
+		I("startStopBtn").className="running";
+	}
+}
+
+//function to (re)initialize UI
+function initUI(){
+	I("dlText").textContent="";
+	I("ulText").textContent="";
+	I("pingText").textContent="";
+	I("jitText").textContent="";
+	I("ip").textContent="";
+}
+
+function I(id){return document.getElementById(id);}
+</script>
+
+<style type="text/css">
+	html,body{
+		border:none; padding:0; margin:0;
+		background:#FFFFFF;
+		color:#202020;
+	}
+	body{
+		text-align:center;
+		font-family:"Roboto",sans-serif;
+	}
+	h1{
+		color:#404040;
+	}
+	#startStopBtn{
+		display:inline-block;
+		margin:0 auto;
+		color:#6060AA;
+		background-color:rgba(0,0,0,0);
+		border:0.15em solid #6060FF;
+		border-radius:0.3em;
+		transition:all 0.3s;
+		box-sizing:border-box;
+		width:8em; height:3em;
+		line-height:2.7em;
+		cursor:pointer;
+		box-shadow: 0 0 0 rgba(0,0,0,0.1), inset 0 0 0 rgba(0,0,0,0.1);
+	}
+	#startStopBtn:hover{
+		box-shadow: 0 0 2em rgba(0,0,0,0.1), inset 0 0 1em rgba(0,0,0,0.1);
+	}
+	#startStopBtn.running{
+		background-color:#FF3030;
+		border-color:#FF6060;
+		color:#FFFFFF;
+	}
+	#startStopBtn:before{
+		content:"Start";
+	}
+	#startStopBtn.running:before{
+		content:"Abort";
+	}
+	#test{
+		margin-top:2em;
+		margin-bottom:3em;
+	}
+	div.testArea{
+		display:inline-block;
+		width:14em;
+		height:9em;
+		position:relative;
+		box-sizing:border-box;
+	}
+	div.testName{
+		position:absolute;
+		top:0.1em; left:0;
+		width:100%;
+		font-size:1.4em;
+		z-index:9;
+	}
+	div.meterText{
+		position:absolute;
+		bottom:1.5em; left:0;
+		width:100%;
+		font-size:2.5em;
+		z-index:9;
+	}
+	#dlText{
+		color:#6060AA;
+	}
+	#ulText{
+		color:#309030;
+	}
+	#pingText,#jitText{
+		color:#AA6060;
+	}
+	div.meterText:empty:before{
+		color:#505050 !important;
+		content:"0.00";
+	}
+	div.unit{
+		position:absolute;
+		bottom:2em; left:0;
+		width:100%;
+		z-index:9;
+	}
+	div.testGroup{
+		display:inline-block;
+	}
+	@media all and (max-width:65em){
+		body{
+			font-size:1.5vw;
+		}
+	}
+	@media all and (max-width:40em){
+		body{
+			font-size:0.8em;
+		}
+		div.testGroup{
+			display:block;
+			margin: 0 auto;
+		}
+	}
+	.demo-title {
+        text-align: center;
+      }
+    .demo-title span {
+        display: inline-block;
+        padding-top: 10px;
+        font-size: 15px;
+        max-width: 720px;
+      }
+	p {
+    display: block;
+    margin-block-start: 1em;
+	margin-block-end: 0em;
+    }
+	.gt-container .gt-counts,.gt-container .gt-header-controls-tip{float: left;}
+	.gt-container .gt-comment-content{text-align: left;}	
+	
+	
+	
+	
+
+</style>
+</head>
+<body>
+<h1>HTML5 Speedtest</h1>
+<div id="serverId">Selecting server...</div><br>
+<div id="startStopBtn" onclick="startStop()"></div>
+
+<div id="test">
+    <div class="testGroup">
+		<div class="testArea">
+			<div class="testName">Download</div>
+			<div id="dlText" class="meterText"></div>
+			<div class="unit">Mbps</div>
+		</div>
+		<div class="testArea">
+			<div class="testName">Upload</div>
+			<div id="ulText" class="meterText"></div>
+			<div class="unit">Mbps</div>
+		</div>
+	</div>
+	<div class="testGroup">
+		<div class="testArea">
+			<div class="testName">Ping</div>
+			<div id="pingText" class="meterText"></div>
+			<div class="unit">ms</div>
+		</div>
+		<div class="testArea">
+			<div class="testName">Jitter</div>
+			<div id="jitText" class="meterText"></div>
+			<div class="unit">ms</div>
+		</div>
+	</div>
+	<div id="ipArea">
+		IP Address: <span id="ip"></span>
+	</div>
+</div>
+
+ <div style="border-top: 1px solid #dddddd"></div>
+<p class="demo-title">
+    <span class="demo">测试结果如何？评论一下吧</span><br>
+	<span class="demo">请按”节点名称+评论“发表</span>
+</p>
+<div id="gitalk-container" style="max-width:720px;margin: 0 auto 30px auto;padding: 0 20px;"></div>     
+<script type="text/javascript">
+    var gitalk = new Gitalk({
+    // gitalk的主要参数
+      clientID: `d1540d4df3a9cb0ded70`,   //上面获取到的值
+      clientSecret: `51e50fe431e7ecac829d5c0797ac4f1c1099558a`,//上面获取到的值
+      repo: `html5-speedtest`,  //您刚才建立仓库的名字
+      owner: 'jialezi',   //你的GitHub用户名字
+      admin: ['jialezi','kmm996'],  //你的GitHub用户的名字
+      id: 'indow.location.pathname', //id不能重复，如果重复就会把其他页面的评论引进来
+      distractionFreeMode: true
+        });
+      gitalk.render('gitalk-container');
+</script> 
+
+<a href="https://github.com/adolfintel/speedtest">Original Source</a> - <a href="https://github.com/jialezi/html5-speedtest">Modified by jialezi<br></a>
+
+<script type="text/javascript">
+    initUI();
+    selectServer();
+</script>
+</body>
+</html>
