@@ -8,10 +8,10 @@
 
 
 
->注:
->index.html和single-nogitalk.html为不带gitalk的原始测速页面
->single.html为带gitalk的单服务器测速页面
->mult.html和mult-pretty.html为带gitalk的多服务器测速页面（需要自行修改添加 LIST OF TEST SERVERS）
+>注:  
+>index.html和single-nogitalk.html为不带gitalk的原始测速页面  
+>single.html为带gitalk的单服务器测速页面  
+>mult.html和mult-pretty.html为带gitalk的多服务器测速页面（需要自行修改添加 LIST OF TEST SERVERS）  
 
 
 #### docker
